@@ -7,14 +7,15 @@ import os.path, re, sys, time
 
 if __name__ == "__main__":
     args = sys.argv
-    userid = ''
+    user_id = ''
     if len(args) <= 1:
-        sys.exit("Please type 'dl_mediatweets 'userid'' !")
+        sys.exit("Please type 'python ./dl_mediatweets.py 'user_id''!")
     else:
         if len(args) == 2:
-            userid = args[1]
+            user_id = args[1]
 
-    target_url = "https://twitter.com/" + userid + "/media"
+    print("user_id=@%s" % user_id)
+    target_url = "https://twitter.com/" + user_id + "/media"
 
     # Twitterのrobots.txtをチェックする
     rp = robotparser.RobotFileParser()
@@ -67,9 +68,9 @@ if __name__ == "__main__":
     # 指定したユーザIDのTwitterページを開く
     driver.get(target_url)
 
-    # Twitterページのタイトルが「メディアツイート ... Twitter」になっていない場合、
+    # TwitterページのタイトルにユーザIDが存在しない場合、
     # 該当ユーザが存在しないと判断し終了
-    if not re.match(r"^メディアツイート.*Twitter$", driver.title):
+    if not re.match(r".*@" + user_id + ".*$", driver.title):
         sys.exit("Error! Not Found Twitter User Page!")
 
     # 非公開ユーザかどうかチェックするため、非公開ユーザのみ存在する要素を取得する
@@ -85,7 +86,7 @@ if __name__ == "__main__":
 
     # メディアツイートが無い場合は終了
     if len(media_tweets) == 0:
-        print( "'%s' not found media tweets." % userid)
+        print( "'%s' not found media tweets." % user_id)
         sys.exit(1)
 
     # メディアツイートを全て表示するまでSelenium上のTwitterページを下にスクロールする
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     print("Media tweets count:", media_tweet_count)
 
     # カレントディレクトリ/ユーザID/を保存ディレクトリとする
-    savedir = os.path.dirname("./" + userid + "/")
+    savedir = os.path.dirname("./" + user_id + "/")
     if not os.path.exists(savedir):
         # ディレクトリが無い場合は作成
         makedirs(savedir)
@@ -109,26 +110,30 @@ if __name__ == "__main__":
     # メディアツイートに存在する画像をすべて保存する
     for media_tweet in media_tweets:
         tweet_id = media_tweet.get_attribute("data-item-id")
-        media_elem = media_tweet.find_element_by_css_selector("div > div.content > div.AdaptiveMediaOuterContainer > div > div > div")
-        img_elems = media_elem.find_elements_by_tag_name("img")
+        print("Checking ID:%s '%s'" % (tweet_id, "https://twitter.com/" + user_id + "/status/" + tweet_id))
+        media_elem = media_tweet.find_elements_by_css_selector("div > div.content > div.AdaptiveMediaOuterContainer > div > div > div")
+        if len(media_elem) == 0:
+            print("ID:%s is not image tweet." % tweet_id)
+            continue
+        img_elems = media_elem[0].find_elements_by_tag_name("img")
         for i, img_elem in enumerate(img_elems):
             img_url = img_elem.get_attribute("src")
             img_ext = re.search(r"^.*(\.[0-9|a-z|A-Z]+)$", img_url).group(1)
             if len(img_elems) ==  1:
                 # 1ツイートに対して、画像が１つの場合は、
                 # [ツイートID].[基画像の拡張子]をファイル名とする
-                print("Download:%s" % tweet_id)
                 savepath = savedir + "/" + tweet_id + img_ext
             else:
-                print("Download:%s_%i" % (tweet_id, i+1))
                 # 1ツイートに対して、画像が複数存在する場合は、
                 # [ツイートID_画像番号].[基画像の拡張子]をファイル名とする
                 savepath = savedir + "/" + tweet_id + "_" + str(i+1) + img_ext
             if os.path.exists(savepath):
                 # 既に保存している場合はスキップ
+                print("ID:%s is Already Download:" % tweet_id)
                 continue
 
             # 画像を保存
+            print("Download: from '%s' to '%s'" % (img_url,savepath))
             request.urlretrieve(img_url, savepath)
 
             # robots.txtに従ってウェイト
