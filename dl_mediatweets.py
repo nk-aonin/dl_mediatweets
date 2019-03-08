@@ -1,23 +1,29 @@
 # coding:utf-8
 from selenium.webdriver import Chrome, ChromeOptions
 from bs4 import BeautifulSoup
-from urllib import request, robotparser
+from urllib import request, robotparser, error
 from os import makedirs
 import os.path, re, sys, time
 
 if __name__ == "__main__":
     args = sys.argv
     user_id = ''
+    # 引数をチェック
     if len(args) <= 1:
+        # 引数が存在しない（user_idが指定されていない）場合は終了
         sys.exit("Please type 'python ./dl_mediatweets.py 'user_id''!")
     else:
         if len(args) == 2:
             user_id = args[1]
+        else:
+            # 引数が多すぎる(user_idが特定出来ない）場合は終了
+            sys.exit("Please type 'python ./dl_mediatweets.py 'user_id''!")
 
-    print("user_id=@%s" % user_id)
+    print("user_id='%s'" % user_id)
     target_url = "https://twitter.com/" + user_id + "/media"
 
     # Twitterのrobots.txtをチェックする
+    print("Check 'robots.txt'...")
     rp = robotparser.RobotFileParser()
     rp.set_url("https://twitter.com/robots.txt")
     rp.read()
@@ -40,6 +46,7 @@ if __name__ == "__main__":
 
     # TwitterページのHTTPヘッダーのX-Robots-Tag内に、
     # "nofollow"または"noarchive"が有るかチェック。
+    print("Check 'X-Robots-Tag'...")
     r = request.urlopen(target_url)
     if "nofollow" in str(r.headers.get("X-Robots-Tag")) \
         or "noarchive" in str(r.headers.get("X-Robots-Tag")):
@@ -49,6 +56,7 @@ if __name__ == "__main__":
 
     # Twitterページのmetaタグに、
     # "nofollow"または"noarchive"が有るかチェックする。
+    print("Check 'Meta Tag'...")
     soup = BeautifulSoup(r, "html.parser")
     meta = soup.find_all('meta',
                      attrs={"name":"robots"},
@@ -125,16 +133,24 @@ if __name__ == "__main__":
                 savepath = savedir + "/" + tweet_id + img_ext
             else:
                 # 1ツイートに対して、画像が複数存在する場合は、
-                # [ツイートID_画像番号].[基画像の拡張子]をファイル名とする
+                # [ツイートID_連番].[基画像の拡張子]をファイル名とする
                 savepath = savedir + "/" + tweet_id + "_" + str(i+1) + img_ext
             if os.path.exists(savepath):
                 # 既に保存している場合はスキップ
-                print("ID:%s is Already Download:" % tweet_id)
+                print("ID:%s is Already Download.(url:'%s')" % (tweet_id, img_url))
                 continue
 
-            # 画像を保存
+            # 画像を保存する
             print("Download: from '%s' to '%s'" % (img_url,savepath))
-            request.urlretrieve(img_url, savepath)
+            try:
+                # 画像のダウンロードは失敗する可能性があるのでエラーをキャッチする
+                request.urlretrieve(img_url, savepath)
+            except error.HTTPError as e:
+                # HTTP Errorとなった場合はエラーコードを表示
+                print("Failed download:'%s' (Error Code:%s)" % (img_url, e.code))
+            except error.URLError as e:
+                # URL Errorとなった場合はエラーメッセージを表示
+                print("Failed download:'%s' (Error Message:%s)" % (img_url, e.reason))
 
             # robots.txtに従ってウェイト
             time.sleep(delay_sec)

@@ -1,6 +1,6 @@
-# Download Media Tweets
+# Download Twitter Media Tweets
 ## 概要
-このプログラムはTwitter上に存在するユーザのメディアツイートに存在する画像を全てダウンロードするPythonプログラムです。
+このプログラムはTwitter上に存在するユーザがツイートした画像を、全てダウンロードするPythonプログラムです。
 
 非公開となっているユーザには対応しておりません。
 
