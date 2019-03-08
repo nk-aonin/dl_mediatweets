@@ -8,12 +8,16 @@ import os.path, re, sys, time
 if __name__ == "__main__":
     args = sys.argv
     user_id = ''
-    # 引数をチェックし、user_idが指定されていない場合は終了
+    # 引数をチェック
     if len(args) <= 1:
+        # 引数が存在しない（user_idが指定されていない）場合は終了
         sys.exit("Please type 'python ./dl_mediatweets.py 'user_id''!")
     else:
         if len(args) == 2:
             user_id = args[1]
+        else:
+            # 引数が多すぎる(user_idが特定出来ない）場合は終了
+            sys.exit("Please type 'python ./dl_mediatweets.py 'user_id''!")
 
     print("user_id='%s'" % user_id)
     target_url = "https://twitter.com/" + user_id + "/media"
