@@ -11,10 +11,13 @@
 ## 動作環境
 動作はWindows 10でのみ動作確認しています。
 
-動作には[Python本体](https://www.python.jp/)、以下のPythonパッケージ、[Google Chrome](https://www.google.com/intl/ja_ALL/chrome/)、[ChromeDriver - WebDriver for Chrome](https://sites.google.com/a/chromium.org/chromedriver/home)が必要となります。
+動作には[Python本体](https://www.python.jp/)、以下のPythonパッケージ、[Google Chrome](https://www.google.com/intl/ja_ALL/chrome/)が必要となります。
 ```
 beautifulsoup4==4.7.1
+chromedriver-binary==73.0.3683.68.0
 selenium==3.141.0
+soupsieve==1.8
+urllib3==1.24.1
 ```
 
 また、ChromeDriverのパスを、環境変数のPATHに設定しないと動作しません。
