@@ -3,7 +3,7 @@ from selenium.webdriver import Chrome, ChromeOptions
 from bs4 import BeautifulSoup
 from urllib import request, robotparser, error
 from os import makedirs
-import os.path, re, sys, time
+import os.path, re, sys, time, chromedriver_binary
 
 if __name__ == "__main__":
     args = sys.argv
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     target_url = "https://twitter.com/" + user_id + "/media"
 
     # Twitterのrobots.txtをチェックする
-    print("Check 'robots.txt'...")
+    print("Checking 'robots.txt'...")
     rp = robotparser.RobotFileParser()
     rp.set_url("https://twitter.com/robots.txt")
     rp.read()
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     # TwitterページのHTTPヘッダーのX-Robots-Tag内に、
     # "nofollow"または"noarchive"が有るかチェック。
-    print("Check 'X-Robots-Tag'...")
+    print("Checking 'X-Robots-Tag'...")
     r = request.urlopen(target_url)
     if "nofollow" in str(r.headers.get("X-Robots-Tag")) \
         or "noarchive" in str(r.headers.get("X-Robots-Tag")):
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     # Twitterページのmetaタグに、
     # "nofollow"または"noarchive"が有るかチェックする。
-    print("Check 'Meta Tag'...")
+    print("Checking 'Meta Tag'...")
     soup = BeautifulSoup(r, "html.parser")
     meta = soup.find_all('meta',
                      attrs={"name":"robots"},
