@@ -99,14 +99,15 @@ if __name__ == "__main__":
 
     # メディアツイートを全て表示するまでSelenium上のTwitterページを下にスクロールする
     while True:
-        media_tweets = driver.find_elements_by_css_selector("#stream-items-id > li")
-        media_tweet_count = len(media_tweets)
         media_end_elem = driver.find_element_by_css_selector("#timeline > div > div.stream > div.stream-footer > div > div.stream-end")
         if media_end_elem is None or media_end_elem.is_displayed():
             break
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(delay_sec)
 
+    # メディアツイートを取得する
+    media_tweets = driver.find_elements_by_css_selector("#stream-items-id > li")
+    media_tweet_count = len(media_tweets)
     print("Media tweets count:", media_tweet_count)
 
     # カレントディレクトリ/ユーザID/を保存ディレクトリとする
